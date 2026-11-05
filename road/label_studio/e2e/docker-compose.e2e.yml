@@ -1,0 +1,17 @@
+# End-to-end test override: local images instead of S3, and a fake model instead of Bedrock.
+#   docker compose -f docker-compose.yml -f e2e/docker-compose.e2e.yml up -d --build
+services:
+  label-studio:
+    environment:
+      LOCAL_FILES_SERVING_ENABLED: "true"
+      LOCAL_FILES_DOCUMENT_ROOT: /label-studio/files
+    volumes:
+      - ./e2e/files:/label-studio/files/e2e:ro
+  road-captions:
+    environment:
+      SEND_IMAGE: "true"
+      BEDROCK_MODEL_ID: fake-model-for-e2e
+      PYTHONPATH: /app/e2e
+    volumes:
+      - ./e2e:/app/e2e:ro
+    command: ["uvicorn", "fake_app:create", "--factory", "--host", "0.0.0.0", "--port", "8000"]

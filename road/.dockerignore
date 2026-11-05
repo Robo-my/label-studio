@@ -1,0 +1,6 @@
+**/__pycache__
+**/*.pyc
+label_studio/road_captions/tests
+label_studio/e2e
+label_studio/out
+*.jsonl

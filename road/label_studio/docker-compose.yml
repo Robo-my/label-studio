@@ -1,0 +1,77 @@
+# Review tool: stock Label Studio + our road-captions container, behind one nginx address.
+#   cp .env.example .env   (then edit .env)
+#   docker compose up -d --build
+# Only nginx opens a port. Label Studio, road-captions and PostgreSQL are reachable only inside this network.
+name: road-review
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: labelstudio
+      POSTGRES_USER: labelstudio
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U labelstudio -d labelstudio"]
+      interval: 5s
+      retries: 30
+
+  label-studio:
+    # Stock image. Our features need no Label Studio code change. Pin the version you tested.
+    image: heartexlabs/label-studio:${LS_VERSION:-1.23.2}
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DJANGO_DB: default
+      POSTGRE_NAME: labelstudio
+      POSTGRE_USER: labelstudio
+      POSTGRE_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRE_HOST: db
+      POSTGRE_PORT: "5432"
+      LABEL_STUDIO_USERNAME: ${LS_ADMIN_EMAIL:?set LS_ADMIN_EMAIL in .env}
+      LABEL_STUDIO_PASSWORD: ${LS_ADMIN_PASSWORD:?set LS_ADMIN_PASSWORD in .env}
+      LABEL_STUDIO_DISABLE_SIGNUP_WITHOUT_LINK: "true"   # interns join with the invite link only
+      CSRF_TRUSTED_ORIGINS: ${PUBLIC_URL:-http://localhost:8080}
+    volumes:
+      - lsdata:/label-studio/data
+    expose: ["8080"]
+
+  road-captions:
+    build:
+      context: ..                                  # road_vlm_samples: holds reward.py
+      dockerfile: label_studio/road_captions/Dockerfile
+    restart: unless-stopped
+    environment:
+      LS_URL: http://label-studio:8080
+      BEDROCK_MODEL_ID: ${BEDROCK_MODEL_ID:-}
+      BEDROCK_REGION: ${BEDROCK_REGION:-ap-southeast-5}
+      SEND_IMAGE: ${SEND_IMAGE:-false}
+      REWRITE_SENDS_IMAGE: ${REWRITE_SENDS_IMAGE:-false}
+      BEDROCK_TIMEOUT_S: ${BEDROCK_TIMEOUT_S:-10}
+      BEDROCK_MAX_TOKENS: ${BEDROCK_MAX_TOKENS:-2048}
+      BEDROCK_EXTRA_FIELDS: ${BEDROCK_EXTRA_FIELDS:-}
+      ALLOWED_S3_BUCKETS: ${ALLOWED_S3_BUCKETS:-}
+      S3_REGION: ${S3_REGION:-ap-southeast-5}
+      RATE_PER_MIN: ${RATE_PER_MIN:-60}
+    volumes:
+      - captionlogs:/var/log/road-captions
+    expose: ["8000"]
+
+  nginx:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    depends_on: [label-studio, road-captions]
+    ports:
+      - "${PORT:-8080}:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+
+volumes:
+  pgdata:
+  lsdata:
+  captionlogs:

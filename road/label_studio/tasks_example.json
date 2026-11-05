@@ -1,0 +1,29 @@
+[
+  {
+    "data": {
+      "record_id": "d0390_f007702_b1",
+      "crop": "s3://YOUR-BUCKET/crops/d0390_f007702_b1.jpg",
+      "frame": "s3://YOUR-BUCKET/frames/drive_0390/frame_007702.jpg",
+      "detector_label": "raveling",
+      "proposal_text": "Detector: raveling (0.58)"
+    }
+  },
+  {
+    "data": {
+      "record_id": "d0412_f019044_b3",
+      "crop": "s3://YOUR-BUCKET/crops/d0412_f019044_b3.jpg",
+      "frame": "s3://YOUR-BUCKET/frames/drive_0412/frame_019044.jpg",
+      "detector_label": "pothole",
+      "proposal_text": "Detector: pothole (0.47)"
+    }
+  },
+  {
+    "data": {
+      "record_id": "d0107_f000877_b4",
+      "crop": "s3://YOUR-BUCKET/crops/d0107_f000877_b4.jpg",
+      "frame": "s3://YOUR-BUCKET/frames/drive_0107/frame_000877.jpg",
+      "detector_label": "manhole",
+      "proposal_text": "Detector: manhole (0.88)"
+    }
+  }
+]

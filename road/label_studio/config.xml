@@ -1,0 +1,47 @@
+<View>
+  <!-- One box per task. Keys: 1 correct, 2 pothole, 3 crack, 4 raveling, 5 not a defect, 6 bad box, 7 unsure.
+       Ctrl+Enter submits. The sentence comes live from the road-captions container (road-captions.js). -->
+  <Header value="Is the proposed label right for the red box?"/>
+  <View style="display: flex; flex-wrap: wrap; gap: 12px;">
+    <View style="flex: 1 1 320px;">
+      <Image name="crop" value="$crop" zoom="true"/>
+    </View>
+    <View style="flex: 1 1 320px;">
+      <Image name="frame" value="$frame"/>
+    </View>
+  </View>
+  <Text name="proposal" value="$proposal_text"/>
+  <Choices name="decision" toName="crop" choice="single-radio" showInline="true" required="true">
+    <Choice value="Correct" hotkey="1"/>
+    <Choice value="pothole" hotkey="2"/>
+    <Choice value="crack" hotkey="3"/>
+    <Choice value="raveling" hotkey="4"/>
+    <Choice value="not_a_defect" hotkey="5"/>
+    <Choice value="bad_box" hotkey="6"/>
+    <Choice value="unsure" hotkey="7"/>
+  </Choices>
+  <View visibleWhen="choice-selected" whenTagName="decision" whenChoiceValue="not_a_defect">
+    <Header value="What is it?" size="5"/>
+    <Choices name="lookalike" toName="crop" choice="single-radio" showInline="true" required="true">
+      <Choice value="manhole" hotkey="q"/>
+      <Choice value="standing_water" hotkey="w"/>
+      <Choice value="shadow" hotkey="e"/>
+      <Choice value="patch" hotkey="r"/>
+      <Choice value="road_marking" hotkey="t"/>
+      <Choice value="intact_asphalt" hotkey="y"/>
+      <Choice value="other" hotkey="u"/>
+    </Choices>
+  </View>
+  <View visibleWhen="choice-selected" whenTagName="decision" whenChoiceValue="Correct,pothole,crack,raveling,not_a_defect">
+    <!-- road-captions.js shows the sentence here -->
+    <View idAttr="road-sentence"/>
+    <TextArea name="words" toName="crop" rows="1" maxSubmissions="1" editable="true"
+              placeholder="Sentence wrong? Type what you see in 2-6 words, then press Enter"/>
+    <!-- The saved sentence. Hidden: only road-captions.js writes it. Empty means not ready, so submit is blocked. -->
+    <View style="display: none;">
+      <TextArea name="caption" toName="crop" maxSubmissions="1" required="true"
+                requiredMessage="The sentence is not ready yet. Read the message in the Sentence box."/>
+      <TextArea name="caption_source" toName="crop" maxSubmissions="1"/>
+    </View>
+  </View>
+</View>
